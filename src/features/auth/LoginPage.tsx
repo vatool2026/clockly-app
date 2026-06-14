@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Fingerprint, LogIn, Mail, Lock } from 'lucide-react';
+import { Fingerprint, LogIn, Mail, Lock, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './Login.css';
 
@@ -11,7 +11,10 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+  
+  const isConfirmed = searchParams.get('confirmed') === 'true';
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +54,16 @@ export function LoginPage() {
           <h1>{t('app_name')}</h1>
           <p className="login-subtitle">Melde dich an, um fortzufahren</p>
         </div>
+
+        {isConfirmed && (
+          <div className="success-banner" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+            <CheckCircle2 size={20} />
+            <div>
+              <strong>E-Mail erfolgreich bestätigt!</strong>
+              <div style={{ fontSize: '0.875rem', marginTop: '0.25rem', opacity: 0.9 }}>Du kannst dich jetzt mit deinen Daten einloggen.</div>
+            </div>
+          </div>
+        )}
 
         {error && <div className="error-banner">{error}</div>}
 

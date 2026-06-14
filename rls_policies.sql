@@ -77,7 +77,7 @@ USING (id = auth.uid());
 
 CREATE POLICY "Anyone can insert profile (Registration)" 
 ON public.profiles FOR INSERT 
-WITH CHECK (auth.uid() = id);
+WITH CHECK (true);
 
 -- TIME ENTRIES
 CREATE POLICY "Users can read own time entries, managers read all" 
