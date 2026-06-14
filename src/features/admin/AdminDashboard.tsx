@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { exportToCSV } from '../../utils/csvExport';
-import { Download, ShieldAlert, BarChart, Users, Settings } from 'lucide-react';
+import { Users, Settings } from 'lucide-react';
 import { useToastStore } from '../../stores/toastStore';
 
-export const AdminDashboard = () => {
+export const AdminDashboard = ({ view = 'users' }: { view?: 'users' | 'settings' }) => {
   const { profile } = useAuthStore();
   const { showToast } = useToastStore();
-  const [activeTab, setActiveTab] = useState<'reports' | 'users' | 'settings'>('reports');
   
-  const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
@@ -27,16 +24,7 @@ export const AdminDashboard = () => {
     if (!profile?.company_id || !isAdmin) return;
 
     const fetchData = async () => {
-      // 1. Audit Logs
-      const { data: logs } = await supabase
-        .from('audit_log')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .order('created_at', { ascending: false })
-        .limit(20);
-      if (logs) setAuditLogs(logs);
-
-      // 2. Monthly Data (with User Profile)
+      // 1. Monthly Data (with User Profile)
       const { data: timeEntries } = await supabase
         .from('time_entries')
         .select('user_id, total_minutes, net_minutes, work_date, profiles(first_name, last_name)')
@@ -74,10 +62,6 @@ export const AdminDashboard = () => {
   if (!isAdmin) {
     return <div style={{ padding: '2rem' }}>Keine Berechtigung.</div>;
   }
-
-  const handleExport = () => {
-    exportToCSV(monthlyData, `Zeiterfassung_Report_${new Date().toISOString().split('T')[0]}.csv`);
-  };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId);
@@ -136,67 +120,8 @@ export const AdminDashboard = () => {
 
   return (
     <div className="glass-card" style={{ maxWidth: '1000px', margin: '2rem auto', padding: '2rem' }}>
-      
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-        <button className={`btn ${activeTab === 'reports' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('reports')}>
-          <BarChart size={18} /> Reports & Logs
-        </button>
-        <button className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('users')}>
-          <Users size={18} /> Mitarbeiter
-        </button>
-        <button className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('settings')}>
-          <Settings size={18} /> Firmen-Einstellungen
-        </button>
-      </div>
 
-      {activeTab === 'reports' && (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h2>Reports</h2>
-            <button className="btn btn-primary" onClick={handleExport}>
-              <Download size={18} /> CSV Export
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            <div style={{ flex: 2 }}>
-              <h3>Monatsübersicht (Rohdaten)</h3>
-              <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                {monthlyData.length === 0 ? <p>Keine Daten vorhanden.</p> : (
-                  <table style={{ width: '100%', textAlign: 'left' }}>
-                    <thead><tr><th>Mitarbeiter</th><th>Datum</th><th>Brutto</th><th>Netto</th></tr></thead>
-                    <tbody>
-                      {monthlyData.map((row, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td style={{ padding: '0.5rem 0', fontWeight: 'bold' }}>
-                            {row.profiles ? `${row.profiles.first_name} ${row.profiles.last_name}` : row.user_id.substring(0,8)}
-                          </td>
-                          <td>{row.work_date}</td>
-                          <td>{Math.floor(row.total_minutes / 60)}h {row.total_minutes % 60}m</td>
-                          <td>{Math.floor(row.net_minutes / 60)}h {row.net_minutes % 60}m</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <h3><ShieldAlert size={18} style={{ verticalAlign: 'middle' }}/> Audit Log</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {auditLogs.map(log => (
-                  <div key={log.id} style={{ fontSize: '0.8em', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '4px' }}>
-                    <span style={{ color: 'var(--primary)' }}>{log.action}</span> auf <code>{log.table_name}</code>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'users' && (
+      {view === 'users' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div>
             <h2>Neuen Mitarbeiter einladen</h2>
@@ -278,9 +203,15 @@ export const AdminDashboard = () => {
             <h2>Mitarbeiter-Verwaltung</h2>
             <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
             <table style={{ width: '100%', textAlign: 'left' }}>
-              <thead><tr><th>Name</th><th>E-Mail</th><th>Rolle</th></tr></thead>
+              <thead><tr><th>Name</th><th>E-Mail</th><th>Rolle</th><th>Geleistete Stunden (Monat)</th></tr></thead>
               <tbody>
-                {companyUsers.filter(u => profile?.role === 'superadmin' ? true : u.role !== 'superadmin').map((u) => (
+                {companyUsers.filter(u => profile?.role === 'superadmin' ? true : u.role !== 'superadmin').map((u) => {
+                  const userEntries = monthlyData.filter(entry => entry.user_id === u.id);
+                  const totalMinutes = userEntries.reduce((sum, entry) => sum + (entry.net_minutes || 0), 0);
+                  const hours = Math.floor(totalMinutes / 60);
+                  const mins = totalMinutes % 60;
+                  
+                  return (
                   <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '0.5rem 0' }}>{u.first_name} {u.last_name}</td>
                     <td>{u.email}</td>
@@ -299,8 +230,9 @@ export const AdminDashboard = () => {
                         )}
                       </select>
                     </td>
+                    <td>{hours}h {mins}m</td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -308,7 +240,7 @@ export const AdminDashboard = () => {
       </div>
       )}
 
-      {activeTab === 'settings' && (
+      {view === 'settings' && (
         <div>
           <h2>Firmen-Einstellungen</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>

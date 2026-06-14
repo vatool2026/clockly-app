@@ -84,13 +84,22 @@ const AppLayout = () => {
             )}
             
             {(isSuperAdmin || isCompanyAdmin) && (
-              <button 
-                className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => navigate('/app/admin')}
-                style={{ padding: '0.4rem 1rem' }}
-              >
-                Admin & Reports
-              </button>
+              <>
+                <button 
+                  className={`btn ${location.pathname === '/app/employees' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => navigate('/app/employees')}
+                  style={{ padding: '0.4rem 1rem' }}
+                >
+                  Mitarbeiter
+                </button>
+                <button 
+                  className={`btn ${location.pathname === '/app/company-settings' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => navigate('/app/company-settings')}
+                  style={{ padding: '0.4rem 1rem' }}
+                >
+                  Firmen-Einstellungen
+                </button>
+              </>
             )}
             {isSuperAdmin && (
               <button 
@@ -122,10 +131,11 @@ const AppLayout = () => {
       
       <div className="app-content-wrapper" style={{ flex: 1, paddingBottom: isEmployee ? '64px' : '0' }}>
         <Routes>
-        <Route path="/" element={isEmployee ? <TimerDashboard /> : <Navigate to={isSuperAdmin ? "/app/platform" : "/app/admin"} replace />} />
+        <Route path="/" element={isEmployee ? <TimerDashboard /> : <Navigate to={isSuperAdmin ? "/app/platform" : "/app/employees"} replace />} />
         <Route path="/projects" element={<ProjectAdmin />} />
         <Route path="/absences" element={<AbsencePage />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/employees" element={<AdminDashboard view="users" />} />
+        <Route path="/company-settings" element={<AdminDashboard view="settings" />} />
         <Route path="/platform" element={<PlatformDashboard />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/others" element={<OthersPage />} />
