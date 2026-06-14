@@ -12,7 +12,7 @@ export const PlatformDashboard = () => {
   const [systemMessage, setSystemMessage] = useState('');
 
   // Hardcoded platform admin check for demonstration
-  const isPlatformAdmin = user?.email === 'andre.reitz88@googlemail.com';
+  const isPlatformAdmin = user?.email === 'andre.reitz88@googlemail.com' || user?.email === 'vatool2026@gmail.com';
 
   useEffect(() => {
     if (!isPlatformAdmin) return;

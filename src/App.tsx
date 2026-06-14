@@ -59,7 +59,7 @@ const AppLayout = () => {
                 Admin & Reports
               </button>
             )}
-            {useAuthStore.getState().user?.email === 'andre.reitz88@googlemail.com' && (
+            {(useAuthStore.getState().user?.email === 'andre.reitz88@googlemail.com' || useAuthStore.getState().user?.email === 'vatool2026@gmail.com') && (
               <button 
                 className={`btn ${location.pathname === '/app/platform' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/platform')}
