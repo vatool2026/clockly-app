@@ -10,7 +10,6 @@ export const PlatformDashboard = () => {
   
   const [companies, setCompanies] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'companies' | 'users'>('companies');
   const [systemMessage, setSystemMessage] = useState('');
   
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -62,6 +61,16 @@ export const PlatformDashboard = () => {
     }
   };
 
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId);
+    if (!error) {
+      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      showToast('Rolle erfolgreich aktualisiert', 'success');
+    } else {
+      showToast('Fehler beim Aktualisieren der Rolle', 'error');
+    }
+  };
+
   const handleViewTimes = async (user: any) => {
     setSelectedUser(user);
     const { data, error } = await supabase
@@ -89,19 +98,9 @@ export const PlatformDashboard = () => {
         <h2>Platform Super-Admin</h2>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-        <button className={`btn ${activeTab === 'companies' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('companies')}>
-          <Building size={18} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} /> Firmen & Nutzer
-        </button>
-        <button className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('users')}>
-          Alle Nutzer
-        </button>
-      </div>
-
       <div style={{ display: 'flex', gap: '2rem' }}>
         <div style={{ flex: 2 }}>
-          {activeTab === 'companies' ? (
-            <>
+          <>
               <h3><Building size={18} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} /> Firmen</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {companies.map(c => (
@@ -121,11 +120,21 @@ export const PlatformDashboard = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {allUsers.filter(u => u.company_id === c.id).map(u => (
+                        {allUsers.filter(u => u.company_id === c.id && u.role !== 'superadmin').map(u => (
                           <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                             <td style={{ padding: '0.5rem 0' }}>{u.first_name} {u.last_name}</td>
                             <td style={{ color: 'var(--text-muted)' }}>{u.email}</td>
-                            <td>{u.role}</td>
+                            <td>
+                              <select 
+                                value={u.role} 
+                                onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                                className="input-field"
+                                style={{ padding: '0.2rem', height: 'auto', fontSize: '0.8em' }}
+                              >
+                                <option value="employee">Mitarbeiter</option>
+                                <option value="company_admin">Admin</option>
+                              </select>
+                            </td>
                             <td>
                               <span style={{ 
                                 padding: '0.2rem 0.5rem', 
@@ -161,47 +170,6 @@ export const PlatformDashboard = () => {
                 ))}
               </div>
             </>
-          ) : (
-            <>
-              <h3>Nutzer-Übersicht</h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Alle registrierten Nutzer systemweit.</p>
-              
-              <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <table style={{ width: '100%', textAlign: 'left', fontSize: '0.9em' }}>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>E-Mail</th>
-                      <th>Firma</th>
-                      <th>Rolle</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allUsers.map(u => (
-                      <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '0.8rem 0' }}>{u.first_name} {u.last_name}</td>
-                        <td style={{ color: 'var(--text-muted)' }}>{u.email}</td>
-                        <td><strong>{u.companies?.name || '-'}</strong></td>
-                        <td><span style={{ padding: '0.2rem 0.5rem', background: 'var(--primary)', color: 'white', borderRadius: '1rem', fontSize: '0.8em' }}>{u.role}</span></td>
-                        <td>
-                          <span style={{ 
-                            padding: '0.2rem 0.5rem', 
-                            borderRadius: '1rem', 
-                            fontSize: '0.8em',
-                            background: u.status === 'blocked' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)',
-                            color: u.status === 'blocked' ? '#ef4444' : '#22c55e'
-                          }}>
-                            {u.status || 'active'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
         </div>
 
         <div style={{ flex: 1 }}>

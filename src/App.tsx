@@ -80,7 +80,7 @@ const AppLayout = () => {
               </>
             )}
             
-            {(isSuperAdmin || isCompanyAdmin) && (
+            {isCompanyAdmin && (
               <button 
                 className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/admin')}
