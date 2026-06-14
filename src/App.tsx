@@ -83,7 +83,7 @@ const AppLayout = () => {
               </>
             )}
             
-            {(isSuperAdmin || isCompanyAdmin) && (
+            {isCompanyAdmin && (
               <>
                 <button 
                   className={`btn ${location.pathname === '/app/employees' ? 'btn-primary' : 'btn-outline'}`}
