@@ -9,18 +9,23 @@ export const PlatformDashboard = () => {
   const { showToast } = useToastStore();
   
   const [companies, setCompanies] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'companies' | 'users'>('companies');
   const [systemMessage, setSystemMessage] = useState('');
 
   // Hardcoded platform admin check for demonstration
-  const isPlatformAdmin = user?.email === 'andre.reitz88@googlemail.com' || user?.email === 'vatool2026@gmail.com';
+  const isPlatformAdmin = user?.email === 'vatool2026@gmail.com';
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
-    const fetchCompanies = async () => {
-      const { data } = await supabase.from('companies').select('*').order('created_at', { ascending: false });
-      if (data) setCompanies(data);
+    const fetchData = async () => {
+      const { data: companiesData } = await supabase.from('companies').select('*').order('created_at', { ascending: false });
+      if (companiesData) setCompanies(companiesData);
+
+      const { data: usersData } = await supabase.from('profiles').select('*, companies(name)').order('created_at', { ascending: false });
+      if (usersData) setAllUsers(usersData);
     };
-    fetchCompanies();
+    fetchData();
   }, [isPlatformAdmin]);
 
   const handleSendNotification = () => {
@@ -42,13 +47,24 @@ export const PlatformDashboard = () => {
         <h2>Platform Super-Admin</h2>
       </div>
 
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+        <button className={`btn ${activeTab === 'companies' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('companies')}>
+          <Building size={18} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} /> Firmen
+        </button>
+        <button className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('users')}>
+          Nutzer
+        </button>
+      </div>
+
       <div style={{ display: 'flex', gap: '2rem' }}>
         <div style={{ flex: 2 }}>
-          <h3><Building size={18} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} /> Registrierte Firmen</h3>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Übersicht aller Mandanten auf deiner Plattform.</p>
-          
-          <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-            <table style={{ width: '100%', textAlign: 'left' }}>
+          {activeTab === 'companies' ? (
+            <>
+              <h3><Building size={18} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} /> Registrierte Firmen</h3>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Übersicht aller Mandanten auf deiner Plattform.</p>
+              
+              <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                <table style={{ width: '100%', textAlign: 'left' }}>
               <thead>
                 <tr>
                   <th>Firma</th>
@@ -66,9 +82,39 @@ export const PlatformDashboard = () => {
                     <td>{new Date(c.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3>Nutzer-Übersicht</h3>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Alle registrierten Nutzer systemweit.</p>
+              
+              <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                <table style={{ width: '100%', textAlign: 'left' }}>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>E-Mail</th>
+                      <th>Firma</th>
+                      <th>Rolle</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allUsers.map(u => (
+                      <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '0.8rem 0' }}>{u.first_name} {u.last_name}</td>
+                        <td style={{ color: 'var(--text-muted)' }}>{u.email}</td>
+                        <td><strong>{u.companies?.name || '-'}</strong></td>
+                        <td><span style={{ padding: '0.2rem 0.5rem', background: 'var(--primary)', color: 'white', borderRadius: '1rem', fontSize: '0.8em' }}>{u.role}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
 
         <div style={{ flex: 1 }}>

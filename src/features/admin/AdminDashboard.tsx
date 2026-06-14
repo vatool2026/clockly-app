@@ -13,6 +13,7 @@ export const AdminDashboard = () => {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
   const [featureToggles, setFeatureToggles] = useState<any>({});
   
   const [inviteEmail, setInviteEmail] = useState('');
@@ -49,7 +50,15 @@ export const AdminDashboard = () => {
         .eq('company_id', profile.company_id);
       if (users) setCompanyUsers(users);
 
-      // 4. Company Settings
+      // 4. Pending Invitations
+      const { data: invites } = await supabase
+        .from('invitations')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .eq('status', 'pending');
+      if (invites) setPendingInvites(invites);
+
+      // 5. Company Settings
       const { data: company } = await supabase
         .from('companies')
         .select('feature_toggles')
@@ -110,6 +119,10 @@ export const AdminDashboard = () => {
       if (data) {
         const link = `${window.location.origin}/invite/${data.token}`;
         setInviteLink(link);
+        
+        // Refresh pending invites
+        setPendingInvites(prev => [...prev, { ...data, email: inviteEmail, role: inviteRole, status: 'pending', id: data.token }]); // Approximate for instant UI update
+        
         showToast('Einladungslink generiert!', 'success');
         setInviteEmail('');
       }
@@ -215,17 +228,48 @@ export const AdminDashboard = () => {
               
               {inviteLink && (
                 <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-sm)' }}>
-                  <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Einladungslink (Bitte kopieren und an den Mitarbeiter senden):</p>
+                  <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Einladungslink generiert!</p>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <input type="text" className="input-field" value={inviteLink} readOnly />
                     <button className="btn btn-outline" onClick={() => { navigator.clipboard.writeText(inviteLink); showToast('Kopiert!', 'success'); }}>
                       Kopieren
                     </button>
+                    <a 
+                      href={`mailto:?subject=Einladung zu Clockly&body=Hallo!%0D%0A%0D%0ADu wurdest eingeladen.%0D%0ABitte klicke auf diesen Link, um dich zu registrieren:%0D%0A${inviteLink}`}
+                      className="btn btn-primary"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      E-Mail öffnen
+                    </a>
                   </div>
                 </div>
               )}
             </div>
           </div>
+
+          {pendingInvites.length > 0 && (
+            <div>
+              <h2>Ausstehende Einladungen</h2>
+              <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                <table style={{ width: '100%', textAlign: 'left' }}>
+                  <thead><tr><th>E-Mail</th><th>Geplante Rolle</th><th>Link</th></tr></thead>
+                  <tbody>
+                    {pendingInvites.map((inv, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '0.5rem 0' }}>{inv.email}</td>
+                        <td>{inv.role === 'company_admin' ? 'Admin' : 'Mitarbeiter'}</td>
+                        <td>
+                          <button className="btn btn-outline" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8em' }} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/invite/${inv.token || inv.id}`); showToast('Kopiert!', 'success'); }}>
+                            Link kopieren
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           <div>
             <h2>Mitarbeiter-Verwaltung</h2>
@@ -233,7 +277,7 @@ export const AdminDashboard = () => {
             <table style={{ width: '100%', textAlign: 'left' }}>
               <thead><tr><th>Name</th><th>E-Mail</th><th>Rolle</th></tr></thead>
               <tbody>
-                {companyUsers.map((u) => (
+                {companyUsers.filter(u => profile?.role === 'superadmin' ? true : u.role !== 'superadmin').map((u) => (
                   <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '0.5rem 0' }}>{u.first_name} {u.last_name}</td>
                     <td>{u.email}</td>
@@ -243,10 +287,13 @@ export const AdminDashboard = () => {
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
                         className="input-field"
                         style={{ padding: '0.3rem', height: 'auto' }}
-                        disabled={u.id === profile.id}
+                        disabled={u.id === profile.id || (u.role === 'superadmin' && profile.role !== 'superadmin')}
                       >
                         <option value="employee">Mitarbeiter</option>
                         <option value="company_admin">Admin</option>
+                        {u.role === 'superadmin' && (
+                          <option value="superadmin">Super Admin</option>
+                        )}
                       </select>
                     </td>
                   </tr>

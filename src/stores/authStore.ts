@@ -136,6 +136,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (!authData.user) throw new Error("Registrierung fehlgeschlagen");
 
     // 3. Create Profile
+    // Failsafe: Ein eingeladener Nutzer darf niemals Super Admin werden
+    const finalRole = (inviteData.role === 'superadmin') ? 'employee' : (inviteData.role || 'employee');
+
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
@@ -144,7 +147,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         first_name: firstName,
         last_name: lastName,
         email: inviteData.email,
-        role: inviteData.role
+        role: finalRole
       });
 
     if (profileError) throw profileError;

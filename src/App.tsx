@@ -43,7 +43,7 @@ const AppLayout = () => {
     initializeTimer();
   }, [initializeTimer]);
 
-  const isPlatformAdmin = user?.email === 'andre.reitz88@googlemail.com' || user?.email === 'vatool2026@gmail.com';
+  const isPlatformAdmin = user?.email === 'vatool2026@gmail.com';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -51,33 +51,29 @@ const AppLayout = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--primary)' }}>Clockly.</h2>
           <nav style={{ display: 'flex', gap: '1rem' }}>
-            {!isPlatformAdmin && (
-              <>
-                <button 
-                  className={`btn ${location.pathname === '/app' ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => navigate('/app')}
-                  style={{ padding: '0.4rem 1rem' }}
-                >
-                  Timer
-                </button>
-                <button 
-                  className={`btn ${location.pathname === '/app/projects' ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => navigate('/app/projects')}
-                  style={{ padding: '0.4rem 1rem' }}
-                >
-                  Projekte
-                </button>
-                <button 
-                  className={`btn ${location.pathname === '/app/absences' ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => navigate('/app/absences')}
-                  style={{ padding: '0.4rem 1rem' }}
-                >
-                  Urlaub & Krankheit
-                </button>
-              </>
-            )}
+            <button 
+              className={`btn ${location.pathname === '/app' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => navigate('/app')}
+              style={{ padding: '0.4rem 1rem' }}
+            >
+              Timer
+            </button>
+            <button 
+              className={`btn ${location.pathname === '/app/projects' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => navigate('/app/projects')}
+              style={{ padding: '0.4rem 1rem' }}
+            >
+              Projekte
+            </button>
+            <button 
+              className={`btn ${location.pathname === '/app/absences' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => navigate('/app/absences')}
+              style={{ padding: '0.4rem 1rem' }}
+            >
+              Urlaub & Krankheit
+            </button>
             
-            {(profile?.role === 'superadmin' || profile?.role === 'company_admin') && !isPlatformAdmin && (
+            {(profile?.role === 'superadmin' || profile?.role === 'company_admin') && (
               <button 
                 className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/admin')}
@@ -108,11 +104,7 @@ const AppLayout = () => {
       </header>
       
       <Routes>
-        {isPlatformAdmin ? (
-          <Route path="/" element={<Navigate to="/app/platform" replace />} />
-        ) : (
-          <Route path="/" element={<TimerDashboard />} />
-        )}
+        <Route path="/" element={<TimerDashboard />} />
         <Route path="/projects" element={<ProjectAdmin />} />
         <Route path="/absences" element={<AbsencePage />} />
         <Route path="/admin" element={<AdminDashboard />} />

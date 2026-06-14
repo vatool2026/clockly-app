@@ -53,7 +53,7 @@ AS $$
     SELECT 1 FROM profiles 
     WHERE id = auth.uid() 
     AND company_id = check_company_id 
-    AND role IN ('manager', 'superadmin')
+    AND role IN ('superadmin', 'company_admin', 'company_coadmin')
   );
 $$;
 
@@ -61,6 +61,10 @@ $$;
 CREATE POLICY "Users can read own company" 
 ON public.companies FOR SELECT 
 USING ( id = get_my_company_id() );
+
+CREATE POLICY "Platform admins can read all companies"
+ON public.companies FOR SELECT
+USING ( auth.jwt() ->> 'email' = 'vatool2026@gmail.com' );
 
 CREATE POLICY "Anyone can insert company (Registration)" 
 ON public.companies FOR INSERT 
@@ -70,6 +74,10 @@ WITH CHECK (true);
 CREATE POLICY "Users can read profiles in same company" 
 ON public.profiles FOR SELECT 
 USING ( company_id = get_my_company_id() );
+
+CREATE POLICY "Platform admins can read all profiles"
+ON public.profiles FOR SELECT
+USING ( auth.jwt() ->> 'email' = 'vatool2026@gmail.com' );
 
 CREATE POLICY "Users can update own profile" 
 ON public.profiles FOR UPDATE 
