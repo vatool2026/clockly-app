@@ -20,10 +20,10 @@ export const AdminDashboard = () => {
   const [inviteLink, setInviteLink] = useState('');
   const [isInviting, setIsInviting] = useState(false);
   
-  const isSuperadmin = profile?.role === 'superadmin';
+  const isAdmin = profile?.role === 'superadmin' || profile?.role === 'company_admin';
 
   useEffect(() => {
-    if (!profile?.company_id || !isSuperadmin) return;
+    if (!profile?.company_id || !isAdmin) return;
 
     const fetchData = async () => {
       // 1. Audit Logs
@@ -59,9 +59,9 @@ export const AdminDashboard = () => {
     };
 
     fetchData();
-  }, [profile, isSuperadmin]);
+  }, [profile, isAdmin]);
 
-  if (!isSuperadmin) {
+  if (!isAdmin) {
     return <div style={{ padding: '2rem' }}>Keine Berechtigung.</div>;
   }
 
@@ -255,6 +255,7 @@ export const AdminDashboard = () => {
             </table>
           </div>
         </div>
+      </div>
       )}
 
       {activeTab === 'settings' && (

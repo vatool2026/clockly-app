@@ -77,7 +77,7 @@ const AppLayout = () => {
               </>
             )}
             
-            {profile?.role === 'superadmin' && !isPlatformAdmin && (
+            {(profile?.role === 'superadmin' || profile?.role === 'company_admin') && !isPlatformAdmin && (
               <button 
                 className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/admin')}
