@@ -226,3 +226,10 @@ input:focus, select:focus, textarea:focus {
 .btn-full {
   width: 100%;
 }
+
+/* Responsive Navigation Utilities */
+@media (max-width: 767px) {
+  .desktop-nav {
+    display: none !important;
+  }
+}

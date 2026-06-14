@@ -15,6 +15,9 @@ import { InviteSignupPage } from './features/auth/InviteSignupPage';
 import { LandingPage } from './features/landing/LandingPage';
 import { ProfilePage } from './features/profile/ProfilePage';
 import { ToastContainer } from './components/ToastContainer';
+import { BottomNav } from './components/layout/BottomNav';
+import { OthersPage } from './features/others/OthersPage';
+import { CalendarView } from './features/calendar/CalendarView';
 
 // Navigation layout wrapper
 const AppLayout = () => {
@@ -49,11 +52,11 @@ const AppLayout = () => {
   const isEmployee = !isSuperAdmin && !isCompanyAdmin;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <header style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)', zIndex: 10 }}>
+    <div className="app-layout" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <header className="app-header" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--primary)' }}>Clockly.</h2>
-          <nav style={{ display: 'flex', gap: '1rem' }}>
+          <nav className="desktop-nav" style={{ display: 'flex', gap: '1rem' }}>
             {isEmployee && (
               <>
                 <button 
@@ -80,7 +83,7 @@ const AppLayout = () => {
               </>
             )}
             
-            {isCompanyAdmin && (
+            {(isSuperAdmin || isCompanyAdmin) && (
               <button 
                 className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/admin')}
@@ -100,7 +103,7 @@ const AppLayout = () => {
             )}
           </nav>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div className="desktop-nav" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <button className="btn btn-outline" style={{ padding: '0.4rem 0.8rem' }} onClick={toggleTheme} title="Theme wechseln">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
@@ -117,14 +120,19 @@ const AppLayout = () => {
         </div>
       </header>
       
-      <Routes>
+      <div className="app-content-wrapper" style={{ flex: 1, paddingBottom: isEmployee ? '64px' : '0' }}>
+        <Routes>
         <Route path="/" element={isEmployee ? <TimerDashboard /> : <Navigate to={isSuperAdmin ? "/app/platform" : "/app/admin"} replace />} />
         <Route path="/projects" element={<ProjectAdmin />} />
         <Route path="/absences" element={<AbsencePage />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/platform" element={<PlatformDashboard />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/others" element={<OthersPage />} />
+        <Route path="/calendar" element={<CalendarView />} />
       </Routes>
+      </div>
+      {isEmployee && <BottomNav />}
       <ToastContainer />
     </div>
   );
