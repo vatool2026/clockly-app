@@ -74,8 +74,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (authError) throw authError;
     if (!authData.user) throw new Error("Registrierung fehlgeschlagen");
 
-    // Create a slug for the company
-    const slug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    // Create a slug for the company (make it unique by appending a short random string)
+    const baseSlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
     
     // Generate an ID so we don't have to read the row back from the database (which would violate RLS because profile doesn't exist yet)
     const companyId = crypto.randomUUID();
