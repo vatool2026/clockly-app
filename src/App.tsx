@@ -16,12 +16,15 @@ import { ToastContainer } from './components/ToastContainer';
 // Navigation layout wrapper
 const AppLayout = () => {
   const { initializeTimer } = useTimerStore();
+  const { user, profile, signOut } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   
   useEffect(() => {
     initializeTimer();
   }, [initializeTimer]);
+
+  const isPlatformAdmin = user?.email === 'andre.reitz88@googlemail.com' || user?.email === 'vatool2026@gmail.com';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -50,7 +53,7 @@ const AppLayout = () => {
             >
               Urlaub & Krankheit
             </button>
-            {useAuthStore.getState().profile?.role === 'superadmin' && (
+            {profile?.role === 'superadmin' && (
               <button 
                 className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/admin')}
@@ -59,7 +62,7 @@ const AppLayout = () => {
                 Admin & Reports
               </button>
             )}
-            {(useAuthStore.getState().user?.email === 'andre.reitz88@googlemail.com' || useAuthStore.getState().user?.email === 'vatool2026@gmail.com') && (
+            {isPlatformAdmin && (
               <button 
                 className={`btn ${location.pathname === '/app/platform' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/platform')}
@@ -70,7 +73,7 @@ const AppLayout = () => {
             )}
           </nav>
         </div>
-        <button className="btn btn-outline" style={{ padding: '0.4rem 1rem' }} onClick={() => useAuthStore.getState().signOut()}>
+        <button className="btn btn-outline" style={{ padding: '0.4rem 1rem' }} onClick={() => signOut()}>
           Abmelden
         </button>
       </header>
