@@ -76,13 +76,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     // Create a slug for the company
     const slug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    
+    // Generate an ID so we don't have to read the row back from the database (which would violate RLS because profile doesn't exist yet)
+    const companyId = crypto.randomUUID();
 
-    // 2. Create Company
-    const { data: companyData, error: companyError } = await supabase
+    // 2. Create Company (without .select() to avoid RLS read policy violation)
+    const { error: companyError } = await supabase
       .from('companies')
-      .insert({ name: companyName, slug })
-      .select()
-      .single();
+      .insert({ id: companyId, name: companyName, slug });
 
     if (companyError) throw companyError;
 
@@ -91,7 +92,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       .from('profiles')
       .insert({
         id: authData.user.id,
-        company_id: companyData.id,
+        company_id: companyId,
         first_name: firstName,
         last_name: lastName,
         email: email,
