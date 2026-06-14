@@ -48,13 +48,13 @@ export const RegisterPage = () => {
         
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label>Firmenname</label>
+            <label className="auth-label">Firmenname</label>
             <input 
               type="text" 
-              className="input-field"
+              className="auth-input"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="z.B. CB Akustik e.K."
+              placeholder="z.B. Muster GmbH"
               required
             />
           </div>
