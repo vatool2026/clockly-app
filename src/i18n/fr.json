@@ -1,0 +1,13 @@
+{
+  "app_name": "Clockly",
+  "timer": {
+    "ready": "Prêt",
+    "working": "En cours",
+    "paused": "En pause",
+    "start": "DÉMARRER",
+    "pause": "PAUSE",
+    "stop": "ARRÊTER",
+    "stop_work": "FIN TRAVAIL",
+    "stop_pause": "FIN PAUSE"
+  }
+}
