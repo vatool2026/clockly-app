@@ -11,6 +11,7 @@ import { AbsencePage } from './features/absences/AbsencePage';
 import { AdminDashboard } from './features/admin/AdminDashboard';
 import { PlatformDashboard } from './features/admin/PlatformDashboard';
 import { RegisterPage } from './features/auth/RegisterPage';
+import { LandingPage } from './features/landing/LandingPage';
 import { ToastContainer } from './components/ToastContainer';
 
 // Navigation layout wrapper
@@ -32,28 +33,33 @@ const AppLayout = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>⏱️ Clockly</h2>
           <nav style={{ display: 'flex', gap: '1rem' }}>
-            <button 
-              className={`btn ${location.pathname === '/app' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => navigate('/app')}
-              style={{ padding: '0.4rem 1rem' }}
-            >
-              Timer
-            </button>
-            <button 
-              className={`btn ${location.pathname === '/app/projects' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => navigate('/app/projects')}
-              style={{ padding: '0.4rem 1rem' }}
-            >
-              Projekte
-            </button>
-            <button 
-              className={`btn ${location.pathname === '/app/absences' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => navigate('/app/absences')}
-              style={{ padding: '0.4rem 1rem' }}
-            >
-              Urlaub & Krankheit
-            </button>
-            {profile?.role === 'superadmin' && (
+            {!isPlatformAdmin && (
+              <>
+                <button 
+                  className={`btn ${location.pathname === '/app' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => navigate('/app')}
+                  style={{ padding: '0.4rem 1rem' }}
+                >
+                  Timer
+                </button>
+                <button 
+                  className={`btn ${location.pathname === '/app/projects' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => navigate('/app/projects')}
+                  style={{ padding: '0.4rem 1rem' }}
+                >
+                  Projekte
+                </button>
+                <button 
+                  className={`btn ${location.pathname === '/app/absences' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => navigate('/app/absences')}
+                  style={{ padding: '0.4rem 1rem' }}
+                >
+                  Urlaub & Krankheit
+                </button>
+              </>
+            )}
+            
+            {profile?.role === 'superadmin' && !isPlatformAdmin && (
               <button 
                 className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => navigate('/app/admin')}
@@ -79,7 +85,11 @@ const AppLayout = () => {
       </header>
       
       <Routes>
-        <Route path="/" element={<TimerDashboard />} />
+        {isPlatformAdmin ? (
+          <Route path="/" element={<Navigate to="/app/platform" replace />} />
+        ) : (
+          <Route path="/" element={<TimerDashboard />} />
+        )}
         <Route path="/projects" element={<ProjectAdmin />} />
         <Route path="/absences" element={<AbsencePage />} />
         <Route path="/admin" element={<AdminDashboard />} />
@@ -113,6 +123,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route 
@@ -123,10 +134,10 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        <Route path="*" element={<Navigate to="/app" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
 }
 
-export default App
+export default App;
