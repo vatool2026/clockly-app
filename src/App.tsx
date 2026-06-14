@@ -1,122 +1,129 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from './stores/authStore';
+import { useTimerStore } from './stores/timerStore';
+import { LoginPage } from './features/auth/LoginPage';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { TimerDashboard } from './features/timer/TimerDashboard';
+import { ProjectAdmin } from './features/projects/ProjectAdmin';
+import { AbsencePage } from './features/absences/AbsencePage';
+import { AdminDashboard } from './features/admin/AdminDashboard';
+import { PlatformDashboard } from './features/admin/PlatformDashboard';
+import { RegisterPage } from './features/auth/RegisterPage';
+import { ToastContainer } from './components/ToastContainer';
+
+// Navigation layout wrapper
+const AppLayout = () => {
+  const { initializeTimer } = useTimerStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    initializeTimer();
+  }, [initializeTimer]);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <header style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--glass-bg)', backdropFilter: 'blur(10px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>⏱️ Clockly</h2>
+          <nav style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              className={`btn ${location.pathname === '/app' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => navigate('/app')}
+              style={{ padding: '0.4rem 1rem' }}
+            >
+              Timer
+            </button>
+            <button 
+              className={`btn ${location.pathname === '/app/projects' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => navigate('/app/projects')}
+              style={{ padding: '0.4rem 1rem' }}
+            >
+              Projekte
+            </button>
+            <button 
+              className={`btn ${location.pathname === '/app/absences' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => navigate('/app/absences')}
+              style={{ padding: '0.4rem 1rem' }}
+            >
+              Urlaub & Krankheit
+            </button>
+            {useAuthStore.getState().profile?.role === 'superadmin' && (
+              <button 
+                className={`btn ${location.pathname === '/app/admin' ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => navigate('/app/admin')}
+                style={{ padding: '0.4rem 1rem' }}
+              >
+                Admin & Reports
+              </button>
+            )}
+            {useAuthStore.getState().user?.email === 'andre.reitz88@googlemail.com' && (
+              <button 
+                className={`btn ${location.pathname === '/app/platform' ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => navigate('/app/platform')}
+                style={{ padding: '0.4rem 1rem', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+              >
+                Platform
+              </button>
+            )}
+          </nav>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+        <button className="btn btn-outline" style={{ padding: '0.4rem 1rem' }} onClick={() => useAuthStore.getState().signOut()}>
+          Abmelden
         </button>
-      </section>
+      </header>
+      
+      <Routes>
+        <Route path="/" element={<TimerDashboard />} />
+        <Route path="/projects" element={<ProjectAdmin />} />
+        <Route path="/absences" element={<AbsencePage />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/platform" element={<PlatformDashboard />} />
+      </Routes>
+      <ToastContainer />
+    </div>
+  );
+};
 
-      <div className="ticks"></div>
+// Protected Route Wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuthStore();
+  if (isLoading) return <div>Lade Berechtigungen...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  
+  return <>{children}</>;
+};
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+function App() {
+  const { initialize, isLoading } = useAuthStore();
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  if (isLoading) {
+    return <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>Lädt Clockly...</div>;
+  }
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route 
+          path="/app/*" 
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="*" element={<Navigate to="/app" replace />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App
