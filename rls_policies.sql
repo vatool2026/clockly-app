@@ -52,19 +52,36 @@ AS $$
   SELECT EXISTS (
     SELECT 1 FROM profiles 
     WHERE id = auth.uid() 
-    AND company_id = check_company_id 
-    AND role IN ('superadmin', 'company_admin', 'company_coadmin')
+    AND (
+      (company_id = check_company_id AND role IN ('company_admin', 'company_coadmin'))
+      OR role = 'superadmin'
+    )
   );
 $$;
+
+-- Add status column
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status text DEFAULT 'active';
 
 -- COMPANIES
 CREATE POLICY "Users can read own company" 
 ON public.companies FOR SELECT 
 USING ( id = get_my_company_id() );
 
+CREATE OR REPLACE FUNCTION is_superadmin()
+RETURNS boolean
+LANGUAGE sql SECURITY DEFINER SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE id = auth.uid() 
+    AND role = 'superadmin'
+  );
+$$;
+
 CREATE POLICY "Platform admins can read all companies"
 ON public.companies FOR SELECT
-USING ( auth.jwt() ->> 'email' = 'vatool2026@gmail.com' );
+USING ( is_superadmin() );
 
 CREATE POLICY "Anyone can insert company (Registration)" 
 ON public.companies FOR INSERT 
@@ -77,7 +94,7 @@ USING ( company_id = get_my_company_id() );
 
 CREATE POLICY "Platform admins can read all profiles"
 ON public.profiles FOR SELECT
-USING ( auth.jwt() ->> 'email' = 'vatool2026@gmail.com' );
+USING ( is_superadmin() );
 
 CREATE POLICY "Users can update own profile" 
 ON public.profiles FOR UPDATE 

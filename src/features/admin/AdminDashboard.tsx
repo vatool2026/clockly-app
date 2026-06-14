@@ -36,11 +36,12 @@ export const AdminDashboard = () => {
         .limit(20);
       if (logs) setAuditLogs(logs);
 
-      // 2. Monthly Data
+      // 2. Monthly Data (with User Profile)
       const { data: timeEntries } = await supabase
         .from('time_entries')
-        .select('user_id, total_minutes, net_minutes, work_date')
-        .eq('company_id', profile.company_id);
+        .select('user_id, total_minutes, net_minutes, work_date, profiles(first_name, last_name)')
+        .eq('company_id', profile.company_id)
+        .order('work_date', { ascending: false });
       if (timeEntries) setMonthlyData(timeEntries);
 
       // 3. Company Users
@@ -163,14 +164,16 @@ export const AdminDashboard = () => {
               <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
                 {monthlyData.length === 0 ? <p>Keine Daten vorhanden.</p> : (
                   <table style={{ width: '100%', textAlign: 'left' }}>
-                    <thead><tr><th>User ID</th><th>Datum</th><th>Brutto</th><th>Netto</th></tr></thead>
+                    <thead><tr><th>Mitarbeiter</th><th>Datum</th><th>Brutto</th><th>Netto</th></tr></thead>
                     <tbody>
                       {monthlyData.map((row, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td style={{ padding: '0.5rem 0', fontSize: '0.8em' }}>{row.user_id.substring(0,8)}</td>
+                          <td style={{ padding: '0.5rem 0', fontWeight: 'bold' }}>
+                            {row.profiles ? `${row.profiles.first_name} ${row.profiles.last_name}` : row.user_id.substring(0,8)}
+                          </td>
                           <td>{row.work_date}</td>
-                          <td>{row.total_minutes}m</td>
-                          <td>{row.net_minutes}m</td>
+                          <td>{Math.floor(row.total_minutes / 60)}h {row.total_minutes % 60}m</td>
+                          <td>{Math.floor(row.net_minutes / 60)}h {row.net_minutes % 60}m</td>
                         </tr>
                       ))}
                     </tbody>

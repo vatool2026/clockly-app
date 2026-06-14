@@ -37,7 +37,12 @@ export const useAuthStore = create<AuthState>((set) => ({
           .eq('id', session.user.id)
           .single();
           
-        set({ session, user: session.user, profile, isLoading: false });
+        if (profile?.status === 'blocked') {
+          await supabase.auth.signOut();
+          set({ session: null, user: null, profile: null, isLoading: false });
+        } else {
+          set({ session, user: session.user, profile, isLoading: false });
+        }
       } else {
         set({ session: null, user: null, profile: null, isLoading: false });
       }
@@ -50,7 +55,12 @@ export const useAuthStore = create<AuthState>((set) => ({
             .select('*')
             .eq('id', newSession.user.id)
             .single();
-          set({ session: newSession, user: newSession.user, profile });
+          if (profile?.status === 'blocked') {
+            await supabase.auth.signOut();
+            set({ session: null, user: null, profile: null });
+          } else {
+            set({ session: newSession, user: newSession.user, profile });
+          }
         } else {
           set({ session: null, user: null, profile: null });
         }
@@ -102,7 +112,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         first_name: firstName,
         last_name: lastName,
         email: email,
-        role: 'superadmin'
+        role: 'company_admin',
+        status: 'active'
       });
 
     if (profileError) throw profileError;
