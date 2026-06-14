@@ -11,6 +11,7 @@ interface AuthState {
   initialize: () => Promise<void>;
   signOut: () => Promise<void>;
   registerCompany: (data: any) => Promise<void>;
+  registerFromInvite: (token: string, data: any) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -104,5 +105,54 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
 
     if (profileError) throw profileError;
+  },
+
+  registerFromInvite: async (token, { firstName, lastName, password }) => {
+    // 1. Fetch invitation
+    const { data: inviteData, error: inviteError } = await supabase
+      .from('invitations')
+      .select('*')
+      .eq('token', token)
+      .single();
+
+    if (inviteError || !inviteData) {
+      throw new Error("Ungültiger oder abgelaufener Einladungslink.");
+    }
+
+    if (inviteData.status !== 'pending') {
+      throw new Error("Diese Einladung wurde bereits verwendet oder ist abgelaufen.");
+    }
+
+    // 2. Sign up user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: inviteData.email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login?confirmed=true`,
+      }
+    });
+
+    if (authError) throw authError;
+    if (!authData.user) throw new Error("Registrierung fehlgeschlagen");
+
+    // 3. Create Profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        company_id: inviteData.company_id,
+        first_name: firstName,
+        last_name: lastName,
+        email: inviteData.email,
+        role: inviteData.role
+      });
+
+    if (profileError) throw profileError;
+
+    // 4. Update Invitation Status
+    await supabase
+      .from('invitations')
+      .update({ status: 'accepted' })
+      .eq('id', inviteData.id);
   }
 }));

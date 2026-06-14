@@ -157,3 +157,22 @@ CREATE POLICY "Anyone can insert audit logs"
 ON public.audit_log FOR INSERT 
 WITH CHECK (user_id = auth.uid());
 
+-- INVITATIONS
+ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read invitations in same company"
+ON public.invitations FOR SELECT
+USING ( company_id = get_my_company_id() );
+
+CREATE POLICY "Insert invitations (Admins)"
+ON public.invitations FOR INSERT
+WITH CHECK ( is_admin_or_manager(company_id) );
+
+CREATE POLICY "Update invitations (Admins)"
+ON public.invitations FOR UPDATE
+USING ( is_admin_or_manager(company_id) );
+
+CREATE POLICY "Public read for invitations"
+ON public.invitations FOR SELECT
+USING (true);
+

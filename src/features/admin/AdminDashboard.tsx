@@ -15,6 +15,11 @@ export const AdminDashboard = () => {
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
   const [featureToggles, setFeatureToggles] = useState<any>({});
   
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('employee');
+  const [inviteLink, setInviteLink] = useState('');
+  const [isInviting, setIsInviting] = useState(false);
+  
   const isSuperadmin = profile?.role === 'superadmin';
 
   useEffect(() => {
@@ -83,6 +88,38 @@ export const AdminDashboard = () => {
     }
   };
 
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile?.company_id) return;
+    setIsInviting(true);
+    setInviteLink('');
+
+    try {
+      const { data, error } = await supabase
+        .from('invitations')
+        .insert({
+          company_id: profile.company_id,
+          email: inviteEmail,
+          role: inviteRole,
+          created_by: profile.id
+        })
+        .select('token')
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        const link = `${window.location.origin}/invite/${data.token}`;
+        setInviteLink(link);
+        showToast('Einladungslink generiert!', 'success');
+        setInviteEmail('');
+      }
+    } catch (err: any) {
+      showToast('Fehler beim Erstellen der Einladung.', 'error');
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
   return (
     <div className="glass-card" style={{ maxWidth: '1000px', margin: '2rem auto', padding: '2rem' }}>
       
@@ -144,10 +181,55 @@ export const AdminDashboard = () => {
       )}
 
       {activeTab === 'users' && (
-        <div>
-          <h2>Mitarbeiter-Verwaltung</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Mitarbeiter registrieren sich über die Landingpage. Hier kannst du ihre Rollen verwalten.</p>
-          <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div>
+            <h2>Neuen Mitarbeiter einladen</h2>
+            <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+              <form onSubmit={handleInviteUser} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                <div style={{ flex: 2 }}>
+                  <label>E-Mail Adresse</label>
+                  <input 
+                    type="email" 
+                    className="input-field" 
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    required
+                    placeholder="mitarbeiter@firma.de"
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label>Rolle</label>
+                  <select 
+                    className="input-field" 
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value)}
+                  >
+                    <option value="employee">Mitarbeiter</option>
+                    <option value="company_admin">Admin</option>
+                  </select>
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={isInviting || !inviteEmail}>
+                  {isInviting ? 'Erstelle...' : 'Link generieren'}
+                </button>
+              </form>
+              
+              {inviteLink && (
+                <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-sm)' }}>
+                  <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Einladungslink (Bitte kopieren und an den Mitarbeiter senden):</p>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input type="text" className="input-field" value={inviteLink} readOnly />
+                    <button className="btn btn-outline" onClick={() => { navigator.clipboard.writeText(inviteLink); showToast('Kopiert!', 'success'); }}>
+                      Kopieren
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h2>Mitarbeiter-Verwaltung</h2>
+            <div style={{ background: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
             <table style={{ width: '100%', textAlign: 'left' }}>
               <thead><tr><th>Name</th><th>E-Mail</th><th>Rolle</th></tr></thead>
               <tbody>
@@ -163,9 +245,8 @@ export const AdminDashboard = () => {
                         style={{ padding: '0.3rem', height: 'auto' }}
                         disabled={u.id === profile.id}
                       >
-                        <option value="user">User</option>
-                        <option value="manager">Manager</option>
-                        <option value="superadmin">Superadmin</option>
+                        <option value="employee">Mitarbeiter</option>
+                        <option value="company_admin">Admin</option>
                       </select>
                     </td>
                   </tr>

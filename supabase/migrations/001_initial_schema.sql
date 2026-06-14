@@ -4,6 +4,7 @@ CREATE TYPE user_role AS ENUM ('superadmin', 'company_admin', 'company_coadmin',
 CREATE TYPE leave_type AS ENUM ('vacation', 'flex_day', 'special_leave');
 CREATE TYPE request_status AS ENUM ('pending', 'approved', 'rejected', 'cancelled');
 CREATE TYPE time_entry_status AS ENUM ('active', 'completed', 'corrected');
+CREATE TYPE invitation_status AS ENUM ('pending', 'accepted', 'expired');
 
 -- Table: companies
 CREATE TABLE companies (
@@ -41,6 +42,19 @@ CREATE TABLE profiles (
     language TEXT DEFAULT 'de',
     pin_hash TEXT,
     is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Table: invitations
+CREATE TABLE invitations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    token UUID DEFAULT gen_random_uuid() UNIQUE,
+    role user_role DEFAULT 'employee',
+    status invitation_status DEFAULT 'pending',
+    created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -232,6 +246,7 @@ ALTER TABLE sick_leave ENABLE ROW LEVEL SECURITY;
 ALTER TABLE flextime_account ENABLE ROW LEVEL SECURITY;
 ALTER TABLE correction_reasons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invitations ENABLE ROW LEVEL SECURITY;
 
 CREATE OR REPLACE FUNCTION get_user_company_id() RETURNS UUID AS $$
   SELECT company_id FROM public.profiles WHERE id = auth.uid() LIMIT 1;

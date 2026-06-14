@@ -1,57 +1,90 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Import old fonts just in case some components rely on Inter, but we rely on index.html now */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap');
 
 :root {
-  /* Light Theme */
-  --bg-base: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-surface-hover: #f1f5f9;
+  /* Light Theme - Modern Editorial */
+  --bg-base: #F4F2EE;
+  --bg-surface: #FFFFFF;
+  --bg-surface-hover: #FAFAFA;
   
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-primary: #1A1A1A;
+  --text-secondary: #595959;
+  --text-muted: #888888;
   
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #e0e7ff;
+  --primary: #D45D3C; /* Terracotta */
+  --primary-hover: #B84D30;
+  --primary-light: #F0E6E3;
   
-  --success: #10b981;
-  --danger: #ef4444;
-  --warning: #f59e0b;
+  --success: #1A5F5A; /* Pine Green */
+  --danger: #D43C3C;
+  --warning: #D4A33C;
   
-  --border: #e2e8f0;
+  --border: #D1D1D1;
+  --border-focus: #1A1A1A;
   
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
   --radius-full: 9999px;
   
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* Minimalist Shadows */
+  --shadow-sm: none;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.08);
   
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-bg: var(--bg-surface);
+  --glass-border: var(--border);
+  
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
 }
 
+/* System Dark Mode */
 @media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark Theme */
-    --bg-base: #0f172a;
-    --bg-surface: #1e293b;
-    --bg-surface-hover: #334155;
+  :root:not([data-theme="light"]) {
+    --bg-base: #0D0D0D;
+    --bg-surface: #171717;
+    --bg-surface-hover: #222222;
     
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #64748b;
+    --text-primary: #EFEFEF;
+    --text-secondary: #A0A0A0;
+    --text-muted: #666666;
     
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --primary-light: #3730a3;
+    --primary: #D45D3C;
+    --primary-hover: #E26A4A;
+    --primary-light: #2A1D1A;
     
-    --border: #334155;
+    --border: #333333;
+    --border-focus: #EFEFEF;
     
-    --glass-bg: rgba(30, 41, 59, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    
+    --glass-bg: var(--bg-surface);
+    --glass-border: var(--border);
   }
+}
+
+/* Manual Dark Mode via Toggle */
+[data-theme="dark"] {
+  --bg-base: #0D0D0D;
+  --bg-surface: #171717;
+  --bg-surface-hover: #222222;
+  
+  --text-primary: #EFEFEF;
+  --text-secondary: #A0A0A0;
+  --text-muted: #666666;
+  
+  --primary: #D45D3C;
+  --primary-hover: #E26A4A;
+  --primary-light: #2A1D1A;
+  
+  --border: #333333;
+  --border-focus: #EFEFEF;
+  
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  
+  --glass-bg: var(--bg-surface);
+  --glass-border: var(--border);
 }
 
 * {
@@ -60,12 +93,10 @@
   padding: 0;
 }
 
-/* PWA / Layout adjustments */
 html, body {
-  overscroll-behavior: none; /* Verhindert pull-to-refresh im PWA modus */
+  overscroll-behavior: none;
 }
 
-/* Toast Animation */
 @keyframes slideInUp {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -76,14 +107,15 @@ html, body {
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   background-color: var(--bg-base);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -93,8 +125,10 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
   font-weight: 600;
   line-height: 1.2;
+  color: var(--text-primary);
 }
 
 a {
@@ -114,23 +148,28 @@ button {
   background: none;
 }
 
-/* Glassmorphism Card Utility */
+/* Redesigned Card (Replacing the old generic Glassmorphism) */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+  border-color: var(--text-primary);
 }
 
 /* Input Styles */
 input, select, textarea {
   font-family: inherit;
-  background-color: var(--bg-base);
+  background-color: var(--bg-surface);
   color: var(--text-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
   font-size: 1rem;
   width: 100%;
@@ -139,8 +178,8 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 1px var(--border-focus);
 }
 
 /* Button Styles */
@@ -149,21 +188,24 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
   gap: 0.5rem;
+  text-decoration: none;
+  letter-spacing: 0.02em;
 }
 
 .btn-primary {
-  background-color: var(--primary);
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--bg-base);
+  border: 1px solid var(--text-primary);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  background-color: transparent;
+  color: var(--text-primary);
 }
 
 .btn-primary:active {
@@ -177,7 +219,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .btn-outline:hover {
-  background-color: var(--bg-surface-hover);
+  border-color: var(--text-primary);
+  background-color: var(--bg-surface);
 }
 
 .btn-full {
