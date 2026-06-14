@@ -12,6 +12,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   registerCompany: (data: any) => Promise<void>;
   registerFromInvite: (token: string, data: any) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -157,5 +158,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       .from('invitations')
       .update({ status: 'accepted' })
       .eq('id', inviteData.id);
+  },
+
+  updatePassword: async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      throw error;
+    }
   }
 }));

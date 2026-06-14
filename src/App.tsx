@@ -13,6 +13,7 @@ import { PlatformDashboard } from './features/admin/PlatformDashboard';
 import { RegisterPage } from './features/auth/RegisterPage';
 import { InviteSignupPage } from './features/auth/InviteSignupPage';
 import { LandingPage } from './features/landing/LandingPage';
+import { ProfilePage } from './features/profile/ProfilePage';
 import { ToastContainer } from './components/ToastContainer';
 
 // Navigation layout wrapper
@@ -97,6 +98,13 @@ const AppLayout = () => {
           <button className="btn btn-outline" style={{ padding: '0.4rem 0.8rem' }} onClick={toggleTheme} title="Theme wechseln">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
+          <button 
+            className={`btn ${location.pathname === '/app/profile' ? 'btn-primary' : 'btn-outline'}`}
+            style={{ padding: '0.4rem 1rem' }} 
+            onClick={() => navigate('/app/profile')}
+          >
+            Profil
+          </button>
           <button className="btn btn-outline" style={{ padding: '0.4rem 1rem' }} onClick={() => signOut()}>
             Abmelden
           </button>
@@ -109,6 +117,7 @@ const AppLayout = () => {
         <Route path="/absences" element={<AbsencePage />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/platform" element={<PlatformDashboard />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
       <ToastContainer />
     </div>
